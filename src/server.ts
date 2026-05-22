@@ -1,66 +1,87 @@
-// 1. Definisikan tipe agar lebih aman (Type Safe)
-type RouteHandler = (request: Request, url: URL) => Response | Promise<Response>;
-type RouteMap = Record<string, Record<string, RouteHandler>>;
+// Bun sudah menyediakan global Bun
 
-// 2. Map route untuk memisahkan logika dari server core
-const routes: RouteMap = {
-  GET: {
-    '/': () => 
-      new Response(
-        '<h1>🏠 Halaman Utama (Bun)</h1><p>Selamat datang di server Bun!</p>', 
-        { headers: { 'Content-Type': 'text/html' } }
-      ),
-      
-    '/about': () => 
-      new Response(
-        '<h1>📄 Tentang Kami (Bun)</h1><p>Routing manual ini lebih rapi!</p>', 
-        { headers: { 'Content-Type': 'text/html' } }
-      ),
-      
-    '/api/users': () => 
-      Response.json([
-        { id: 1, name: 'Alice' },
-        { id: 2, name: 'Bob' }
-      ]),
-  },
-  POST: {
-    '/api/users': async (req) => {
-      // Contoh cara mengambil data body jika diperlukan:
-      // const body = await req.json(); 
-      return Response.json(
-        { message: 'User berhasil dibuat' }, 
-        { status: 201 }
-      );
-    }
-  }
-};
+const users = [
+  { id: 1, name: "Nabil" },
+  { id: 2, name: "Fauzan" },
+];
 
-// 3. Jalankan Server
+const products = [
+  { id: 1, name: "Laptop" },
+  { id: 2, name: "Mouse" },
+];
+
 const server = Bun.serve({
   port: 3000,
-  
+
   async fetch(request) {
+    const startTime = Date.now(); // mulai hitung waktu
+
     const url = new URL(request.url);
-    const { pathname: path } = url;
+    const path = url.pathname;
     const method = request.method;
 
     console.log(`[${new Date().toLocaleTimeString()}] ${method} ${path}`);
 
-    // Eksekusi handler berdasarkan method dan path
-    const handler = routes[method]?.[path];
+    // helper response JSON
+    const sendJSON = (data, status = 200) => {
+      const endTime = Date.now();
+      console.log(`⏱ Waktu eksekusi: ${endTime - startTime} ms\n`);
 
-    if (handler) {
-      return handler(request, url);
+      return new Response(JSON.stringify(data), {
+        headers: { "Content-Type": "application/json" },
+        status,
+      });
+    };
+
+    // ================= ROUTING =================
+
+    // GET /
+    if (path === "/" && method === "GET") {
+      return sendJSON({ message: "Selamat datang di halaman Home!" });
     }
 
-    // Default 404 response
-    return new Response(
-      '<h1>❌ 404 - Tidak Ditemukan</h1>', 
-      {
-        status: 404,
-        headers: { 'Content-Type': 'text/html' },
+    // GET /about
+    if (path === "/about" && method === "GET") {
+      return sendJSON({ message: "Halaman About" });
+    }
+
+    // GET /products
+    if (path === "/products" && method === "GET") {
+      return sendJSON(products);
+    }
+
+    // POST /products
+    if (path === "/products" && method === "POST") {
+      return sendJSON(
+        { message: "Produk berhasil dibuat (simulasi)" },
+        201
+      );
+    }
+
+    // GET /users/:id  (PARAMETER DINAMIS)
+    if (path.startsWith("/users/") && method === "GET") {
+      const parts = path.split("/");
+      const id = parseInt(parts[2]);
+
+      const user = users.find((u) => u.id === id);
+
+      if (user) {
+        return sendJSON(user);
+      } else {
+        return sendJSON({ message: "User tidak ditemukan" }, 404);
       }
-    );
+    }
+
+    // POST /users
+    if (path === "/users" && method === "POST") {
+      return sendJSON(
+        { message: "User berhasil dibuat (simulasi)" },
+        201
+      );
+    }
+
+    // 404
+    return sendJSON({ message: "Route tidak ditemukan" }, 404);
   },
 });
 
