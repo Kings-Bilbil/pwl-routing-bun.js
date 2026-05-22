@@ -12,7 +12,7 @@ const server = Bun.serve({
   port: 3000,
 
   async fetch(request) {
-    const startTime = Date.now(); // mulai hitung waktu
+    const startTime = Date.now(); 
 
     const url = new URL(request.url);
     const path = url.pathname;
@@ -20,7 +20,6 @@ const server = Bun.serve({
 
     console.log(`[${new Date().toLocaleTimeString()}] ${method} ${path}`);
 
-    // helper response JSON
     const sendJSON = (data, status = 200) => {
       const endTime = Date.now();
       console.log(`⏱ Waktu eksekusi: ${endTime - startTime} ms\n`);
@@ -31,24 +30,18 @@ const server = Bun.serve({
       });
     };
 
-    // ================= ROUTING =================
-
-    // GET /
     if (path === "/" && method === "GET") {
       return sendJSON({ message: "Selamat datang di halaman Home!" });
     }
 
-    // GET /about
     if (path === "/about" && method === "GET") {
       return sendJSON({ message: "Halaman About" });
     }
 
-    // GET /products
     if (path === "/products" && method === "GET") {
       return sendJSON(products);
     }
 
-    // POST /products
     if (path === "/products" && method === "POST") {
       return sendJSON(
         { message: "Produk berhasil dibuat (simulasi)" },
@@ -56,7 +49,6 @@ const server = Bun.serve({
       );
     }
 
-    // GET /users/:id  (PARAMETER DINAMIS)
     if (path.startsWith("/users/") && method === "GET") {
       const parts = path.split("/");
       const id = parseInt(parts[2]);
@@ -69,8 +61,7 @@ const server = Bun.serve({
         return sendJSON({ message: "User tidak ditemukan" }, 404);
       }
     }
-
-    // POST /users
+    
     if (path === "/users" && method === "POST") {
       return sendJSON(
         { message: "User berhasil dibuat (simulasi)" },
@@ -78,7 +69,6 @@ const server = Bun.serve({
       );
     }
 
-    // 404
     return sendJSON({ message: "Route tidak ditemukan" }, 404);
   },
 });
