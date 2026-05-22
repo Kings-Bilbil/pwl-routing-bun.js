@@ -1,13 +1,11 @@
-// Bun sudah menyediakan global Bun
-
 const users = [
   { id: 1, name: "Nabil" },
   { id: 2, name: "Fauzan" },
 ];
 
 const products = [
-  { id: 1, name: "Laptop" },
-  { id: 2, name: "Mouse" },
+  { id: 1, name: "HP" },
+  { id: 2, name: "Case" },
 ];
 
 const server = Bun.serve({
